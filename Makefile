@@ -42,11 +42,11 @@ _release: _setup-versions ;$(call  git_push,Releasing $(NEXT_VERSION)) ;$(info $
 	$(MAKE) _docker-build _docker-push
 
 _initial-release:
-	$(call git_push,Initial Release)
-	github-release release -u marcelocorreia -r $(GIT_REPO_NAME) --tag 0.0.0 --name 0.0.0
+	$(call git_push,Initial Release,--set-upstream origin master)
+	@github-release release -u marcelocorreia -r $(GIT_REPO_NAME) --tag 0.0.0 --name 0.0.0
 
 define git_push
 	-git add .
 	-git commit -m "$1"
-	-git push
+	-git push $2
 endef

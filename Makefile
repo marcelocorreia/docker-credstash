@@ -3,6 +3,7 @@ NAMESPACE := marcelocorreia
 VERSION := $(shell cat version)
 SOURCE_GITHUB_USER := fugue
 GITHUB_USER := marcelocorreia
+GIT_REPO_NAME := docker-credstash
 SCAFOLD := badwolf
 ifdef GITHUB_TOKEN
 TOKEN_FLAG := -H "Authorization: token $(GITHUB_TOKEN)"
@@ -32,11 +33,18 @@ _update-version:
 	rm /tmp/Dockerfile.tmp
 
 
-_git-push:
-	git add .; git commit -m "Image Version $(VERSION)"; git push
+define git_push
+	-git add .
+	-git commit -m "$1"
+	-git push
+endef
 
 _readme:
 	$(SCAFOLD) generate --resource-type readme .
+	$(call  git_push,Updating: $(VERSION))
+
+open-page:
+	open https://github.com/$(GITHUB_USER)/$(GIT_REPO_NAME).git
 
 test:
 	docker run --rm  -v $(HOME)/.aws:/root/.aws --entrypoint /bin/sh $(NAMESPACE)/$(NAME)

@@ -2,6 +2,7 @@
 # Docker marcelocorreia/credstash
 
 ---
+[![shield](https://img.shields.io/github/release/marcelocorreia/docker-credstash.svg?flat-square)](https://img.shields.io/github/release/marcelocorreia/docker-credstash.svg?flat-square)
 [![shield](https://img.shields.io/docker/pulls/marcelocorreia/credstash.svg)](https://img.shields.io/docker/pulls/marcelocorreia/credstash.svg)
 [![shield](https://img.shields.io/github/languages/top/marcelocorreia/docker-credstash.svg)](https://img.shields.io/github/languages/top/marcelocorreia/docker-credstash.svg)
 ---

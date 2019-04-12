@@ -1,0 +1,58 @@
+---
+name: marcelocorreia/credstash
+github_user: marcelocorreia
+git_repo: docker-credstash
+docker_namespace: marcelocorreia
+docker: https://hub.docker.com/u/marcelocorreia
+github: https://github.com/marcelocorreia
+dockerfile: Dockerfile
+#logo: https://i2.wp.com/killscreen.com/wp-content/uploads/2016/08/bastion-gameplay.jpg?fit=700%2C396&ssl=1
+#docs: https://your.docs.com
+linkedin: https://www.linkedin.com/in/marcelocorreia/
+#website: https://your.website.com
+slack: https://correia-group.slack.com/
+#email: marcelo@correia.io
+blueprint: docker/image
+
+overview: |
+  Docker Ruby Base image
+
+dockerfiles:
+  - Dockerfile
+
+usage: |
+  ### Alias
+  ```bash
+  $ alias credstash="docker run --rm  -v $(HOME)/.aws:/root/.aws marcelocorreia/credstash"
+  ```
+  ```bash
+  $ docker run --rm -it  -v /Users/marcelo/.aws:/root/.aws marcelocorreia/credstash \
+      -r ap-southeast-2 -p my-profile list
+  ```
+  ## Setting timezone
+  ```bash
+  $ docker run --rm -it  -v /Users/marcelo/.aws:/root/.aws  \
+      -e TZ=Australia/Sydney marcelocorreia/credstash -r ap-southeast-2 -p my-profile list
+  ```
+  **Targets**
+  ```bash
+  $ make release
+  $ make build
+  $ make push
+  $ make all-versions
+  $ make current-version
+  $ make next-version
+  ```
+
+shields:
+  - https://img.shields.io/docker/pulls/{{.name}}.svg
+  - https://img.shields.io/github/languages/top/{{ .github_user }}/{{ .git_repo }}.svg
+tldr:
+  - '[Overview](#overview)'
+  - '[Description](#description)'
+  - '[Dockerfile](#dockefile)'
+  - '[Usage](#usage)'
+  - '[License](#license)'
+
+licenses:
+  - apache-license

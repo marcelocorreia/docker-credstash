@@ -1,52 +1,42 @@
 NAME := credstash
-#
+NAMESPACE := marcelocorreia
+VERSION := $(shell cat version)
+SOURCE_GITHUB_USER := fugue
 GITHUB_USER := marcelocorreia
-DOCKER_NAMESPACE := marcelocorreia
-IMAGE_NAME := $(DOCKER_NAMESPACE)/$(NAME)
-GIT_REPO_NAME := docker-$(NAME)
-IMAGE_SOURCE_TYPE ?= .alpine
-REPO_URL := git@github.com:$(GITHUB_USER)/$(GIT_REPO_NAME).git
+SCAFOLD := badwolf
+ifdef GITHUB_TOKEN
+TOKEN_FLAG := -H "Authorization: token $(GITHUB_TOKEN)"
+endif
 
-GIT_BRANCH ?= master
-GIT_REMOTE ?= origin
-RELEASE_TYPE ?= patch
-SEMVER_DOCKER ?= marcelocorreia/semver
+build: _update-version
+	docker build -t $(NAMESPACE)/$(NAME) .
+	docker build -t $(NAMESPACE)/$(NAME):$(VERSION) .
+.PHONY: build
 
-release: _release
-build: _docker-build
-push: _docker-push
+push:
+	docker push $(NAMESPACE)/$(NAME)
+	docker push $(NAMESPACE)/$(NAME):$(VERSION)
 
-all-versions:
-	@git ls-remote --tags $(GIT_REMOTE)
-current-version: _setup-versions
-	@echo $(CURRENT_VERSION)
-next-version: _setup-versions
-	@echo $(NEXT_VERSION)
+release:
+	$(make) build push
+	github-release release -u $(GITHUB_USER) -r $(REPO_NAME) --tag $(VERSION) --name $(VERSION)
 
-_setup-versions:
-	$(eval export CURRENT_VERSION=$(shell git ls-remote --tags $(GIT_REMOTE) | grep -v latest | awk '{ print $$2}'|grep -v 'stable'| sort -r --version-sort | head -n1|sed 's/refs\/tags\///g'))
-	$(eval export NEXT_VERSION=$(shell docker run --rm --entrypoint=semver $(SEMVER_DOCKER) -c -i $(RELEASE_TYPE) $(CURRENT_VERSION)))
+_get-last-release:
+	@$(eval export OUT=$(shell curl -s $(TOKEN_FLAG) https://api.github.com/repos/$(SOURCE_GITHUB_USER)/$(NAME)/tags | jq ".[]|.name" | head -n1 | sed 's/\"//g' | sed 's/v*//g'))
+	@echo $(OUT)
+	@echo $(OUT) > version
+
+_update-version:
+	cat Dockerfile | sed  "s/ARG $(NAME)_version=\".*\"/ARG $(NAME)_version=\"$(VERSION)\"/" > /tmp/Dockerfile.tmp
+	cat /tmp/Dockerfile.tmp > Dockerfile
+	rm /tmp/Dockerfile.tmp
 
 
-_docker-build: _setup-versions
-	docker build -t $(IMAGE_NAME) -f Dockerfile$(IMAGE_SOURCE_TYPE)  .
-	docker build -t $(IMAGE_NAME):$(CURRENT_VERSION) -f Dockerfile$(IMAGE_SOURCE_TYPE) .
-	$(call  git_push,Post Release Updating auto generated stuff - version: $(CURRENT_VERSION))
+_git-push:
+	git add .; git commit -m "Image Version $(VERSION)"; git push
 
-_docker-push: _setup-versions
-	docker push $(IMAGE_NAME):latest
-	docker push $(IMAGE_NAME):$(CURRENT_VERSION)
+_readme:
+	$(SCAFOLD) generate --resource-type readme .
 
-_release: _setup-versions ;$(call  git_push,Releasing $(NEXT_VERSION)) ;$(info $(M) Releasing version $(NEXT_VERSION)...)## Release by adding a new tag. RELEASE_TYPE is 'patch' by default, and can be set to 'minor' or 'major'.
-	github-release release -u marcelocorreia -r $(GIT_REPO_NAME) --tag $(NEXT_VERSION) --name $(NEXT_VERSION)
-	$(MAKE) _docker-build _docker-push
-
-_initial-release:
-	$(call git_push,Initial Release,--set-upstream origin master)
-	@github-release release -u marcelocorreia -r $(GIT_REPO_NAME) --tag 0.0.0 --name 0.0.0
-
-define git_push
-	-git add .
-	-git commit -m "$1"
-	-git push $2
-endef
+test:
+	docker run --rm  -v $(HOME)/.aws:/root/.aws --entrypoint /bin/sh $(NAMESPACE)/$(NAME)
